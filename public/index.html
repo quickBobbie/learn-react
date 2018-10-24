@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <link rel="shortcut icon" href="%PUBLIC_URL%/favicon.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="theme-color" content="#000000">
+    <script
+            src="https://code.jquery.com/jquery-3.3.1.min.js"
+            integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+            crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="./styles/main.css">
+
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/snap.svg/0.5.1/snap.svg-min.js"></script>
+    <!--
+      manifest.json provides metadata used when your web app is added to the
+      homescreen on Android. See https://developers.google.com/web/fundamentals/engage-and-retain/web-app-manifest/
+    -->
+    <!--
+      Notice the use of %PUBLIC_URL% in the tags above.
+      It will be replaced with the URL of the `public` folder during the build.
+      Only files inside the `public` folder can be referenced from the HTML.
+
+      Unlike "/favicon.ico" or "favicon.ico", "%PUBLIC_URL%/favicon.ico" will
+      work correctly both with client-side routing and a non-root public URL.
+      Learn how to configure a non-root public URL by running `npm run build`.
+    -->
+    <title>React App</title>
+  </head>
+  <body>
+    <noscript>
+      You need to enable JavaScript to run this app.
+    </noscript>
+    <div id="root"><svg id="modal"></svg></div>
+    <!--
+      This HTML file is a template.
+      If you open it directly in the browser, you will see an empty page.
+
+      You can add webfonts, meta tags, or analytics to this file.
+      The build step will place the bundled scripts into the <body> tag.
+
+      To begin the development, run `npm start` or `yarn start`.
+      To create a production bundle, use `npm run build` or `yarn build`.
+    -->
+    <script>
+        let svg = Snap('#modal');
+        let sectors = [
+            "#f44336",
+            "#3F51B5",
+            "#9C27B0",
+            "#4CAF50",
+            "#00BCD4",
+            "#E91E63"
+        ];
+
+        polarToCortasian = (cx, cy, r, angle) => {
+            angle = (angle - 90) * Math.PI / 180;
+
+            return {
+                x : cx + r * Math.cos(angle),
+                y : cy + r * Math.sin(angle)
+            };
+        }
+
+        describeArc = (x, y, r, startAngle, endAngle, continueLine) => {
+            let start = polarToCortasian(x, y, r, startAngle);
+            let end = polarToCortasian(x, y, r, endAngle);
+            let large = Math.abs(endAngle - startAngle) >= 180;
+
+            return `
+            ${continueLine?"L":"M"}${start.x},${start.y}
+            A${r},${r},0
+            ${large?1:0}
+            ${endAngle > startAngle?1:0},${end.x},${end.y}
+        `;
+        }
+
+        describeSector = (x, y, r1, r2, startAngle, endAngle) => {
+            return `
+            ${describeArc(x, y, r1, startAngle, endAngle)}
+            ${describeArc(x, y, r2, endAngle, startAngle, true)}Z
+
+          `;
+        }
+
+        let group = svg.g();
+
+        for (let index in sectors) {
+            let sector = svg.path(describeSector(100, 100, 90, 70, 360/sectors.length*(index-1), 360/sectors.length*index - 2))
+                .attr({
+                    stroke : "transparent",
+                    strokeWidth : 2,
+                    fill : sectors[index]
+                })
+
+            group.add(sector);
+        }
+
+        svg.text(100, 100, "Loading")
+            .attr({
+                'text-anchor' : 'middle',
+                fill : '#fff'
+            })
+
+        setInterval(() => {
+            let date = new Date();
+
+            let ss = date.getSeconds();
+            let ms = date.getMilliseconds();
+            let angleSeconds = ss * 6 + ms / (500 / 3);
+
+            group.transform(`r${ angleSeconds }, 100, 100`);
+        }, 1)
+    </script>
+
+  </body>
+</html>
