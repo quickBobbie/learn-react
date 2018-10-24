@@ -1,83 +1,51 @@
 import React, { Component } from 'react';
 
 import Input from './Input';
-import Select from './Select';
 
-class Form extends Component {
+export default class From extends Component {
     constructor(props) {
-
         super(props);
-        this.state = { form : props.form }
-        this.inputList = props.form
+
+        this.state = {
+            inputs : props.form
+        };
+
+        this.handleSubmit = this.handleSubmit.bind(this);
+        this.handleInputChange = this.handleInputChange.bind(this);
     }
 
-    inputList = this.state ? this.state.form : [];
-
-    handleSubmit = event => {
+    handleSubmit(event) {
         event.preventDefault();
 
-        this.setState({ form : this.props.handleSubmit(this.inputList) })
+        this.props.handleSubmit(this.state.inputs);
 
-        this.forceUpdate();
     }
 
-    handleInputChange = data => {
-        this.inputList[data.id].value = data.value;
+    handleInputChange(event) {
+        let state = this.state;
 
+        state.inputs[event.target.id].value = event.target.value;
 
-        if (this.props.inputValid) return this.props.inputValid(this.inputList);
-    }
-
-    handleSelect = (value, id, selected) => {
-        this.inputList[id].value = value;
-
-        if (this.props.handleSelect) {
-            this.inputList = this.props.handleSelect(this.inputList, id, selected);
-
-            this.setState({ from : this.inputList })
-        }
+        this.setState(state);
     }
 
     render() {
         return (
-            <div className="row">
-                <div className="col-md-12">
-                    <form role="form" onSubmit={ this.handleSubmit }>
-                        <fieldset disabled={ false }>
-                            {
-                                this.inputList.map((item, index) => {
-                                    if (item.type === "select")
-                                        return <Select
-                                            title={ item.title }
-                                            name={ item.name }
-                                            value={ item.value }
-                                            defaultValue={ item.defaultValue }
-                                            options={ item.options }
-                                            id={ index }
-                                            key={ index }
-                                            handleSelect={ this.handleSelect.bind(this) }
-                                        />;
-                                    return <Input
-                                        title={ item.title }
-                                        name={ item.name }
-                                        placeholder={ item.placeholder }
-                                        type={ item.type }
-                                        value={ item.value }
-                                        key={ index }
-                                        id={ index }
-                                        required={ item.required }
-                                        handleChange={ this.handleInputChange.bind(this) }
-                                    />
-                                })
-                            }
-                            <button type="submit" className="btn btn-default col-md-12 col-xs-12">{ this.props.titleSubmit }</button>
-                        </fieldset>
-                    </form>
-               </div>
-           </div>
-        )
+            <form role="form" onSubmit={ this.handleSubmit }>
+                <fieldset disabled={ this.props.disabled }>
+                    {
+                        this.state.inputs.map((value, index) => {
+                            return <Input
+                                key={ index }
+                                id={ index }
+                                params={ value }
+                                handleChange={ this.handleInputChange }
+                            />
+                        })
+                    }
+                    <button type="submit" className="btn btn-default col-md-12 col-xs-12">{ this.props.button }</button>
+                </fieldset>
+            </form>
+        );
     }
-
 }
-
-export default Form;

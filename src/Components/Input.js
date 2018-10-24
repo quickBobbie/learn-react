@@ -1,46 +1,29 @@
 import React, { Component } from 'react';
 
-class Input extends Component {
+export default class Input extends Component {
     constructor(props) {
         super(props);
 
-        this.state = {
-            value : this.props.value
-        }
-    }
-
-    className = "form-group";
-
-    handleChange = event => {
-        let input = event.target;
-        let className = this.props.handleChange({id: input.id, value: input.value});
-
-        if (input.name === 'password_2')
-            input.parentElement.className = className;
-
-        this.setState({ value : input.value });
+        this.params = props.params;
     }
 
     render() {
         return (
-            <div className={ this.className }>
+            <div className="form-group">
                 {
-                    this.props.title && <label className="input-title" htmlFor="exampleInputEmail1">{ this.props.title }</label>
+                    this.params.title && <label className="input-title">{ this.params.title }</label>
                 }
                 <input
-                    type={ this.props.type }
-                    name={ this.props.name }
-                    placeholder={ this.props.placeholder }
-                    value={ this.state.value }
-                    required={ this.props.required }
-                    id={ this.props.id }
                     className="form-control"
-                    onChange={ this.handleChange }
+                    type={ this.params.type }
+                    name={ this.params.name }
+                    placeholder={ this.params.placeholder }
+                    value={ this.params.value }
+                    required={ this.params.required }
+                    id={ this.props.id }
+                    onChange={ this.props.handleChange }
                 />
             </div>
-        )
+        );
     }
-
 }
-
-export default Input;

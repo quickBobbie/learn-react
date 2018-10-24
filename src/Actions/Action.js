@@ -1,3 +1,5 @@
+import Crypto from 'crypto';
+
 class Action {
     getFilteredInputs(inputs, filterObj, flag) {
         let filteredInputs = inputs.filter(item => {
@@ -7,6 +9,12 @@ class Action {
         })
 
         return filteredInputs;
+    }
+
+    createHash(str) {
+        return Crypto.createHmac('sha256', str)
+            .update('this is secret')
+            .digest('hex');
     }
 
     compaerePasswords(inputs) {
