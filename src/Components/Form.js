@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 
 import Input from './Input';
+import Select from './Select';
 
 export default class From extends Component {
     constructor(props) {
@@ -11,7 +12,7 @@ export default class From extends Component {
         };
 
         this.handleSubmit = this.handleSubmit.bind(this);
-        this.handleInputChange = this.handleInputChange.bind(this);
+        this.handleChange = this.handleChange.bind(this);
     }
 
     handleSubmit(event) {
@@ -21,7 +22,7 @@ export default class From extends Component {
 
     }
 
-    handleInputChange(event) {
+    handleChange(event) {
         let state = this.state;
 
         state.inputs[event.target.id].value = event.target.value;
@@ -35,11 +36,19 @@ export default class From extends Component {
                 <fieldset disabled={ this.props.disabled }>
                     {
                         this.state.inputs.map((value, index) => {
+                            if (value.type === 'select') {
+                                return <Select
+                                    key={ index }
+                                    id={ index }
+                                    params={ value }
+                                    handleChange={ this.handleChange }
+                                />
+                            }
                             return <Input
                                 key={ index }
                                 id={ index }
                                 params={ value }
-                                handleChange={ this.handleInputChange }
+                                handleChange={ this.handleChange }
                             />
                         })
                     }

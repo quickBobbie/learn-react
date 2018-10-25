@@ -43,9 +43,7 @@ export default class Signin extends Component {
                 'http://localhost:4000/user/signup',
                 {
                     method : "POST",
-                    headers : {
-                        "Content-Type" : "application/x-www-form-urlencoded"
-                    },
+                    headers : Action.setHeaders(),
                     body : Action.stringifyData(data)
                 }
                 )
@@ -68,7 +66,7 @@ export default class Signin extends Component {
     render() {
         return (
             <section className="col-md-4 col-xs-12 col-sm-6">
-                <h1>{ this.props.title }</h1>
+                <h2>{ this.props.title }</h2>
                 <Form
                     form={ this.form }
                     button="Signup"
