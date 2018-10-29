@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, Redirect } from 'react-router-dom';
 
 import Form from '../../Components/Form';
 
@@ -13,7 +13,7 @@ export default class Signin extends Component {
 
         this.form = Inputs;
 
-        this.state = { disabled : false };
+        this.state = { disabled : false, auth : false };
 
         this.handleSubmit = this.handleSubmit.bind(this)
     }
@@ -52,7 +52,9 @@ export default class Signin extends Component {
                     return res.json();
                 })
                 .then(data => {
-                    console.log(data);
+                    this.setState({ auth : true });
+                    this.props.autherize(data);
+
                 })
                 .catch(err => console.log(err));
         } else {
@@ -66,6 +68,7 @@ export default class Signin extends Component {
     render() {
         return (
             <section className="col-md-4 col-xs-12 col-sm-6">
+                { this.state.auth && <Redirect to="/settings"/> }
                 <h2>{ this.props.title }</h2>
                 <Form
                     form={ this.form }

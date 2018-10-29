@@ -12,7 +12,9 @@ export default class From extends Component {
         };
 
         this.handleSubmit = this.handleSubmit.bind(this);
+        this.handleSelect = this.handleSelect.bind(this);
         this.handleChange = this.handleChange.bind(this);
+        this.handleClick = this.handleClick.bind(this);
     }
 
     handleSubmit(event) {
@@ -22,12 +24,22 @@ export default class From extends Component {
 
     }
 
+    handleSelect(event) {
+        let inputs = this.props.handleSelect(this.state.inputs, event.target);
+
+        if (typeof inputs === "object") this.setState({ inputs });
+    }
+
     handleChange(event) {
         let state = this.state;
 
         state.inputs[event.target.id].value = event.target.value;
 
         this.setState(state);
+    }
+
+    handleClick(handler) {
+        handler(this.state.inputs)
     }
 
     render() {
@@ -41,7 +53,7 @@ export default class From extends Component {
                                     key={ index }
                                     id={ index }
                                     params={ value }
-                                    handleChange={ this.handleChange }
+                                    handleChange={ this.handleSelect }
                                 />
                             }
                             return <Input
@@ -49,10 +61,14 @@ export default class From extends Component {
                                 id={ index }
                                 params={ value }
                                 handleChange={ this.handleChange }
+                                handleClick={ () => {return this.handleClick(value.handleClick)} }
                             />
                         })
                     }
-                    <button type="submit" className="btn btn-default col-md-12 col-xs-12">{ this.props.button }</button>
+                    {
+                        this.props.handleSubmit &&
+                        <button type="submit" className="btn btn-default col-md-12 col-xs-12">{ this.props.button }</button>
+                    }
                 </fieldset>
             </form>
         );

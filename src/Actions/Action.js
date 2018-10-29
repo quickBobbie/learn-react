@@ -48,9 +48,9 @@ class Action {
 
         for (let item of arr) {
             if (item._id || item.id)
-                selectionFields.push({ value : item[field], required : false, _id : item._id?item._id:item.id })
+                selectionFields.push({ value : item[field], _id : item._id?item._id:item.id })
             else
-                selectionFields.push({ value : item[field], required : false })
+                selectionFields.push({ value : item[field] })
         }
 
         return selectionFields;

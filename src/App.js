@@ -15,7 +15,7 @@ class App extends Component {
     constructor(props) {
         super(props);
 
-        this.state = { isAuthenticated : Action.getData('token')?true:false };
+        this.state = { isAuthenticated : Action.getData('token')?true:false, user : {} };
 
         this.autherize = this.autherize.bind(this);
         this.logout = this.logout.bind(this);
@@ -25,13 +25,13 @@ class App extends Component {
         Action.setData('token', data.token);
         Action.setData('user', data.user);
 
-        this.setState({ isAuthenticated : true });
+        this.setState({ isAuthenticated : true, user : data.user });
     }
 
     logout() {
         localStorage.clear();
 
-        this.setState({ isAuthenticated : false });
+        this.setState({ isAuthenticated : false, user : {} });
     }
 
     render() {
@@ -49,8 +49,8 @@ class App extends Component {
                         <Switch>
                             { !this.state.isAuthenticated && <Route exact path="/" render={ () => { return <Signin title="Signin" autherize={ this.autherize } /> } }/> }
                             { !this.state.isAuthenticated && <Route path="/signup" render={ () => { return <Signup title="Signup" autherize={ this.autherize } /> } }/> }
-                            { this.state.isAuthenticated && <Route exact path="/" render={ () => { return <Home/> } }/> }
-                            { this.state.isAuthenticated && <Route path="/settings" render={ () => { return <Settings logout={ this.logout }/>} }/> }
+                            { this.state.isAuthenticated && <Route exact path="/" render={ () => { return <Home homes={ this.state.user.homes }/> } }/> }
+                            { this.state.isAuthenticated && <Route path="/settings" render={ () => { return <Settings user={ this.state.user } logout={ this.logout }/>} }/> }
 
                             <Route path="*" render={ () => { return <Notfound path={ this.state.isAuthenticated?"/settings":"/" }/> } }/>
 

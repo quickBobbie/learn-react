@@ -22,6 +22,7 @@ export default class Input extends Component {
                     required={ this.params.required }
                     id={ this.props.id }
                     onChange={ this.props.handleChange }
+                    onClick={ this.props.handleClick }
                 />
             </div>
         );

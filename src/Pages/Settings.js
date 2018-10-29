@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Link } from 'react-router-dom';
+import { Redirect } from 'react-router-dom';
 
 import Form from '../Components/Form';
 
@@ -9,9 +9,11 @@ export default class Settings extends Component {
     constructor(props) {
         super(props);
 
-        this.user = Action.getData('user');
+        this.user = this.props.user !== {} ? this.props.user : Action.getData('user');
 
-        this.form = [
+        console.log(this.props.user)
+
+        this.dataForm = [
             {
                 title : "Username",
                 placeholder : "Enter username",
@@ -33,10 +35,17 @@ export default class Settings extends Component {
                 defaultValue : "--- select sex ---",
                 value : this.user.sex ? this.user.sex : "",
                 options : [
-                    "male",
-                    "female"
+                    {
+                        value : "male"
+                    },
+                    {
+                        value : "female"
+                    }
                 ]
-            },
+            }
+        ];
+
+        this.pwdForm = [
             {
                 title : "Password",
                 placeholder : "Enter old password",
@@ -59,15 +68,16 @@ export default class Settings extends Component {
                 name : "password_2",
                 value : ""
             }
-        ];
+        ]
 
-        this.state = { disabled : false };
+        this.state = { disabled : false, deleted : false };
 
-        this.handleSubmit = this.handleSubmit.bind(this);
+        this.handleSubmitData = this.handleSubmitData.bind(this);
+        this.handleSubmitPassword = this.handleSubmitPassword.bind(this);
         this.deleteAccount = this.deleteAccount.bind(this);
     }
 
-    handleSubmit(inputs) {
+    handleSubmitData(inputs) {
         let data = {};
 
         for (let input of inputs) {
@@ -79,23 +89,10 @@ export default class Settings extends Component {
             delete data.birthday;
         }
 
-        if (data.password_old && data.password_1 && data.password_2){
-            if (data.password_1 === data.password_2) {
-                data.password = data.password_1;
-            } else {
-                alert("passwords do not match.")
-            }
-        }
-
-        delete data.password_old;
-        delete data.password_1;
-        delete data.password_2;
-
         if (Object.keys(data).length !== 0) {
             this.setState({ disabled : true });
-
             fetch(
-                'http://localhost:4000/user',
+                'http://localhost:4000/user/data',
                 {
                     method : "PUT",
                     headers : Action.setHeaders(),
@@ -104,50 +101,128 @@ export default class Settings extends Component {
                 )
                 .then(res => {
                     this.setState({ disabled : false });
+
+                    if (res.status !== 200) return alert("Internal server error.");
                     return res.json();
                 })
                 .then(data => {
                     if (data.message) {
                         alert(data.message);
-                    } else if (data.user) {
-                        Action.setData('user', data.user);
+                    }
+
+                    if (data.updated) {
+                        let user = Action.getData('user');
+
+                        for (let key in data.updated) {
+                            user[key] = data.updated[key];
+                        }
+
+                        this.user = user;
+
+                        Action.setData('user', user);
                     }
                 })
                 .catch(err => console.log(err));
         } else alert("Empty data.")
     }
 
-    deleteAccount() {
+    handleSubmitPassword(inputs) {
+        let oldPasswordInput = Action.getFilteredInputs(inputs, { field : "name", value : "password_old" })[0];
+
+        if (!oldPasswordInput.value) return alert("You did not enter the old password.");
+
+        let newPasswordInputs = Action.getFilteredInputs(inputs, { field : "description", value : "new password" });
+
+        if (!Action.compaerePasswords(newPasswordInputs)) return alert("New passwords do not match.");
+
         this.setState({ disabled : true });
 
+        let data = {
+            oldPassword : Action.createHash(oldPasswordInput.value),
+            newPassword : Action.createHash(newPasswordInputs[0].value)
+        };
+
         fetch(
-            'http://localhost:4000/user',
+            'http://localhost:4000/user/password',
             {
+                method : "PUT",
                 headers : Action.setHeaders(),
-                method : "DELETE"
-            }
-            )
+                body : Action.stringifyData(data)
+            })
             .then(res => {
-                this.setState({ disabled : false });
+                if (res.status === 500) return alert("Internal server error.");
+
                 return res.json();
             })
             .then(({ message }) => {
                 alert(message);
-                this.props.logout();
+                for (let input of inputs) {
+                    input.value = ""
+                }
+
+                this.setState({ disabled : false })
             })
+            .catch(err => console.log(err));
+    }
+
+    deleteAccount() {
+        let del = window.confirm("Delete account?");
+
+        if (del) {
+            this.setState({ disabled : true });
+
+            fetch(
+                'http://localhost:4000/user',
+                {
+                    headers : Action.setHeaders(),
+                    method : "DELETE"
+                }
+            )
+                .then(res => {
+                    this.setState({ disabled : false });
+                    return res.json();
+                })
+                .then(({ message }) => {
+                    alert(message);
+                    this.setState({ deleted : true })
+                    this.props.logout();
+                })
+        }
+
+    }
+
+    handleSelect(inputs, target) {
+        let sexSelect = Action.getFilteredInputs(inputs, { field : "name", value : "sex" })[0];
+
+        sexSelect.value = sexSelect.options[target.selectedIndex - 1].value;
     }
 
     render() {
         return (
             <section className="col-md-5 col-xs-12 col-sm-6">
+                { this.state.deleted && <Redirect to="/" /> }
                 <h2>Settings</h2>
-                <Form
-                    form={ this.form }
-                    button="Seve"
-                    handleSubmit={ this.handleSubmit }
-                    disabled={ this.state.disabled }
-                />
-                <Link onClick={ this.deleteAccount } disabled={ this.state.disabled } to="/" className="link-btn btn btn-default col-md-12 col-xs-12">Delete account</Link>
+                <div>
+                    <h3>User data</h3>
+                    <Form
+                        form={ this.dataForm }
+                        button="Update"
+                        handleSubmit={ this.handleSubmitData }
+                        handleSelect={ this.handleSelect }
+                        disabled={ this.state.disabled }
+                    />
+                </div>
+                <div>
+                    <h3>Password</h3>
+                    <Form
+                        form={ this.pwdForm }
+                        button="Update"
+                        handleSubmit={ this.handleSubmitPassword }
+                        disabled={ this.state.disabled }
+                    />
+                </div>
+
+                <button onClick={ this.deleteAccount } disabled={ this.state.disabled } className="link-btn btn btn-default col-md-12 col-xs-12">Delete account</button>
             </section>
         );
     }
